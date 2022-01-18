@@ -1,0 +1,457 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta property="og:image" content="https://weeklybeats.com/images/wb2022-social.png" />
+  <meta property="twitter:image" content="https://weeklybeats.com/images/wb2022-social.png" />
+
+
+  <title>WeeklyBeats.com</title>
+  <link rel="top" href="/" title="Home" />
+  <link rel="search" href="https://weeklybeats.com/forums/search/" title="Search" />
+  <link rel="author" href="https://weeklybeats.com/forums/members/" title="Members" />
+  <link rel="stylesheet" type="text/css" media="screen"
+    href="https://weeklybeats.com/forums/style/Default/Main.css?v=2022-01-01d" />
+  <script type="text/javascript" src="https://weeklybeats.com/forums/include/js/common.js"></script>
+  <link href="/forums/style/jplayer/jplayer.css?v=2020" rel="stylesheet" type="text/css" />
+  <link href="/forums/style/font-awesome/css/all.min.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="/forums/scripts/jquery/jquery.js?v=2014"></script>
+  <script type="text/javascript" src="/forums/scripts/jquery/jquery.address.min.js?v=2014"></script>
+  <script type="text/javascript" src="/forums/scripts/jquery/jquery.jplayer.js?v=14-2"></script>
+  <script type="text/javascript" src="/forums/scripts/jquery/jplayer.playlist.js?v=14-4"></script>
+  <script type="text/javascript" src="/forums/scripts/main.js?v=2017-12-25-6"></script>
+
+
+
+
+  <link rel="icon" href="/images/favicon22.png" type="image/ico" />
+</head>
+
+<body>
+  <div id="ajaxprogress"></div>
+  <img src="/images/wb2022-1000.png" style="display:none;" />
+  <div id="jplayer">
+    <div id="jquery_jplayer_1" class="jp-jplayer"></div>
+
+    <div id="jp_container_1" class="jp-audio" style="display:none;">
+      <div id="jplayer_contents">
+        <div id="jp_display_controls_1">
+          <ul id="jp-playlist-show-hide">
+            <li><a id="jp-playlist-show-button" class="jp-control-item jp-more" onclick="player.showPlaylist();"><i
+                  class="fa fa-caret-down" aria-hidden="true"></i></a></li>
+            <li><a id="jp-playlist-hide-button" class="jp-control-item jp-less" onclick="player.hidePlaylist();"
+                style="display:none;"><i class="fa fa-caret-up" aria-hidden="true"></i></a></li>
+            <li><a id="jp-playlist-close-button" class="jp-control-item jp-close" onclick="player.hidePlayer();"><i
+                  class="fa fa-times" aria-hidden="true"></i></a></li>
+          </ul>
+        </div>
+        <div class="jp-type-playlist">
+          <div class="jp-gui jp-interface">
+            <ul class="jp-controls">
+              <li><a href="javascript:;" class="jp-control-item jp-previous" tabindex="1"><i class="fa fa-step-backward"
+                    aria-hidden="true"></i></a></li>
+              <li><a href="javascript:;" class="jp-control-item jp-play" tabindex="1"><i class="fa fa-play"
+                    aria-hidden="true"></i></a></li>
+              <li><a href="javascript:;" class="jp-control-item jp-pause" tabindex="1"><i class="fa fa-pause"
+                    aria-hidden="true"></i></a></li>
+              <li><a href="javascript:;" class="jp-control-item jp-next" tabindex="1"><i class="fa fa-step-forward"
+                    aria-hidden="true"></i></a></li>
+            </ul>
+            <div class="jp-selected-title">
+            </div>
+            <div class="jp-time-holder">
+              <div class="jp-current-time">
+              </div> /
+              <div class="jp-duration">
+              </div>
+            </div>
+            <div class="jp-playlist-name">
+            </div>
+            <div class="jp-progress">
+              <div class="jp-seek-bar">
+                <div class="jp-play-bar"></div>
+              </div>
+            </div>
+          </div>
+          <div id="jp-playlist" class="jp-playlist" style="display:none">
+            <ul>
+              <li></li>
+            </ul>
+          </div>
+          <div class="jp-no-solution">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="jplayerPlaylist">
+  </div>
+  <div id="jplayerNewPlaylist">
+  </div>
+  <div id="background_extra"></div>
+  <div class="brd">
+
+    <div id="feeds">
+      <a class="feed feed-discord" href="https://discord.gg/GQVRDRY"><i class="fab fa-discord"
+          aria-hidden="true"></i></a>
+      <a class="feed feed-fb" href="https://www.facebook.com/pages/Weekly-Beats/270981709624157"><i
+          class="fab fa-facebook" aria-hidden="true"></i></a>
+      <a class="feed feed-tw" href="https://twitter.com/weeklybeats"><i class="fab fa-twitter-square"
+          aria-hidden="true"></i></a>
+      <a class="feed feed-rss" href="https://weeklybeats.com/music/rss"><i class="fa fa-rss-square"
+          aria-hidden="true"></i></a>
+    </div>
+    <div id="brd-head" class="gen-content">
+      <p id="brd-title"><a href="/"></a></p>
+    </div>
+
+    <!-- forum_infotop -->
+    <div id="brd-navlinks" class="gen-content">
+      <ul>
+        <li id="navfaq"><a href="/faq">FAQ</a></li>
+        <li id="navmusic"><a href="/music" title="View All Music">Music</a></li>
+        <li id="navforum"><a href="/forums/">Forums</a></li>
+        <li id="navregister"><a href="https://weeklybeats.com/forums/register/">Sign-Up</a></li>
+        <li id="navlogin"><a href="https://weeklybeats.com/forums/login/">Login</a></li>
+        <li id="navupload"><a href="/music/upload" title="Submit a track">Upload</a></li>
+      </ul>
+
+    </div>
+    <div style="clear:both"></div>
+  </div>
+
+  <div id="brd-wrap" class="brd">
+    <div id="brd-wangus's-profile" class="brd-page basic-page">
+      <div id="infoarea">
+        <div id="infoareadesc">
+          <p>
+            Weeklybeats is a 52 week long music project in which artists compose and publicly release 1 song a week for
+            the entire year.<br />
+            Starting January 2nd 2022 GMT each participant will have one week to upload one finished composition. Any
+            style of music or selection of instruments are welcomed and encouraged.
+            <a href="/forums/register">Sign up</a> or <a href="/forums/login">Login</a> to get started or <a
+              href="/faq">check our FAQ</a> for any help or questions you may have.
+
+
+          </p>
+        </div>
+      </div>
+
+
+
+      <div id="brd-crumbs-top" class="crumbs gen-content">
+        <p><span class="crumb crumblast crumbfirst"></span> </p>
+      </div>
+
+
+      <div id="brd-main">
+
+        <div id="profile">
+          <div id="item_main_content">
+            <h1>wangus's Profile</h1>
+            <div class="avatar_bg" style="background:url('https://weeklybeats.com/forums/img/avatars/49757.png');">
+            </div>
+            <div id="item_user_description">
+              <p>
+              <p><a href="https://www.instagram.com/angusmacmullen" target="_blank">insta</a><br /><a
+                  href="https://www.youtube.com/channel/UClK-aAKk9IlDid_6o0SykvQ" target="_blank">youtube</a><br /><a
+                  href="https://anguslocke.bandcamp.com" target="_blank">bandcamp</a><br /><a
+                  href="https://equipboard.com/wangus" target="_blank">equipboard</a></p>
+              </p>
+            </div>
+            <div id="item_user_info">
+              <div class="user_links">
+                <ul>
+                  <li><a class="contact email" title="Send a email"
+                      href="https://weeklybeats.com/forums/email/49757/">Email</a></li>
+                </ul>
+              </div>
+            </div>
+            <div id="item_user_posts" style="clear:both">
+              <div class="user_posts">
+                <ul>
+                  <li><a href="https://weeklybeats.com/forums/search/posts/user/49757/">wangus's posts</a></li>
+                  <li><a href="https://weeklybeats.com/forums/search/topics/user/49757/">wangus's topics</a></li>
+                </ul>
+              </div>
+            </div>
+            <div id="item_user_music">
+              <h2>wangus's Music</h2>
+              <script>
+
+                function selectReplacement(obj) {
+                  // append a class to the select
+                  obj.className += ' replaced';
+                  // create list for styling
+                  var ul = document.createElement('ul');
+                  ul.className = 'selectReplacement';
+                  ul.id = obj.id + '_replacement';
+                  var opts = obj.options;
+                  for (var i = 0; i < opts.length; i++) {
+                    var selectedOpt;
+                    if (opts[i].selected) {
+                      selectedOpt = i;
+                      break;
+                    } else {
+                      selectedOpt = 0;
+                    }
+                  }
+                  for (var i = 0; i < opts.length; i++) {
+                    var li = document.createElement('li');
+                    var txt = document.createTextNode(opts[i].text);
+                    li.appendChild(txt);
+                    li.id = ul.id + '_' + opts[i].value;
+                    li.selIndex = opts[i].index;
+                    li.selectID = obj.id;
+                    li.onclick = function () {
+                      selectMe(this);
+                    }
+                    if (i == selectedOpt) {
+                      li.className = 'selected';
+                      li.onclick = function () {
+                        this.parentNode.className += ' selectOpen';
+                        this.onclick = function () {
+                          selectMe(this);
+                        }
+                      }
+                    }
+                    if (window.attachEvent) {
+                      li.onmouseover = function () {
+                        this.className += ' hover';
+                      }
+                      li.onmouseout = function () {
+                        this.className =
+                          this.className.replace(new RegExp(" hover\\b"), '');
+                      }
+                    }
+                    ul.appendChild(li);
+                  }
+                  // add the input and the ul
+                  obj.parentNode.appendChild(ul);
+                }
+                function selectMe(obj) {
+                  var lis = obj.parentNode.getElementsByTagName('li');
+                  for (var i = 0; i < lis.length; i++) {
+                    if (lis[i] != obj) { // not the selected list item
+                      lis[i].className = '';
+                      lis[i].onclick = function () {
+                        selectMe(this);
+                      }
+                    } else {
+                      setVal(obj.selectID, obj.selIndex);
+                      obj.className = 'selected';
+                      obj.parentNode.className =
+                        obj.parentNode.className.replace(new RegExp(" selectOpen\\b"), '');
+                      obj.onclick = function () {
+                        obj.parentNode.className += ' selectOpen';
+                        this.onclick = function () {
+                          selectMe(this);
+                        }
+                      }
+                    }
+                  }
+                }
+                function setVal(objID, selIndex) {
+                  var obj = document.getElementById(objID);
+                  obj.selectedIndex = selIndex;
+                  $('#item_list_filters').submit();
+                }
+                function setForm() {
+                  var s = document.getElementsByTagName('select');
+                  for (var i = 0; i < s.length; i++) {
+                    selectReplacement(s[i]);
+                  }
+                }
+                function closeSel(obj) {
+                  // close the ul
+                }
+
+              </script>
+
+              <script>
+                setSelectValue = function (obj, val) {
+                  obj.children().each(function (index) {
+                    if ($(this).val() == val) {
+                      $(this).attr('selected', true);
+                    }
+                  });
+                }
+
+                setFilters = function () {
+                  $('#list_search_field').val(s);
+                  setSearchClose();
+                  $('#list_type_' + t).attr("selected", "selected");
+                  selectMe($('#list_type_replacement_' + t));
+                  $('#show_only_' + f).attr("selected", "selected");
+                  selectMe($('#show_only_replacement_' + f));
+                }
+
+                setSearchClose = function () {
+                  if (s) {
+                    $('#item_list_search_close').show();
+                  } else {
+                    $('#item_list_search_close').hide();
+                  }
+                }
+
+                clearSearch = function () {
+                  $('#list_search_field').val('');
+                  $('#item_list_filters').submit();
+                }
+
+                clearFilters = function () {
+                  s = t = f = '';
+                  setFilters();
+                  $('#list_type_').attr("selected", "selected");
+                  selectMe($('#list_type_replacement_'));
+                  $('#show_only_').attr("selected", "selected");
+                  selectMe($('#show_only_replacement_'));
+                  $('#item_list_filters').submit();
+                }
+
+              </script>
+              <div id="list">
+
+                <form name="item_list_filters" id="item_list_filters" action="https://weeklybeats.com/wangus"
+                  method="get">
+                  <div id="item_list_set">
+                    <div id="item_list_options">
+                      <div id="list_search">
+                        <span>Search</span>
+                        <input type="text" id="list_search_field" name="s" value="" /><input type="submit"
+                          class="button" id="item_list_option_submit" name="" value="Go">
+                      </div>
+                      <div id="list_addional_options">
+                        <span>Filters</span>
+                        <select name="f" id="show_only" style="display:none">
+                          <option id="show_only_" value="8" selected="selected">None</option>
+                          <option id="show_only_9" value="9">Featured Music</option>
+
+                          <option id="show_only_17" value="17">Music that allows derivative works</option>
+
+                        </select>
+                      </div>
+                      <div id="list_year">
+                        <span>Year</span>
+                        <select name="y" id="select_year" style="display:none">
+                          <option value="">All</option>
+                          <option value="2022" selected="selected">2022</option>
+                          <option value="2020">2020</option>
+                          <option value="2018">2018</option>
+                          <option value="2016">2016</option>
+                          <option value="2014">2014</option>
+                          <option value="2012">2012</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+
+                <div id="item_podcast">
+                  <a href="https://weeklybeats.com/music/rss/feed.xml?limit=50"><img
+                      src="https://weeklybeats.com/forums/img/rssfeed.png" /></a>
+                </div>
+                <!--<a id="list_mark_read" href="">Mark all items as viewed</a> -->
+                <div id="item_list_ajax_extras"></div>
+                <div id="list_load_set" style="display:none">
+                  <div id="item_list_loading_container">
+                    <div id="item_list_loading" class="list_loading">Loading...</div>
+                  </div>
+                </div>
+                <div id="item" style="display:none;clear:both" onfocus="javascript:closeItem();"></div>
+                <div id="item_list_stage">
+                  <div id="item_list_stage_body">
+
+                    <script>
+                      playerPage = 1;
+                      playerSeed = 3477;
+                      playlistQueryPage = "?r=3477&s=&f=&y=2022&t=&d=1&i=&o=date&u=wangus";
+                      playlistQueryString = "?p=1&r=3477&s=&f=&y=2022&t=&d=1&i=&o=date&u=wangus";
+                    </script>
+                    <div class="music_list_sort">
+                      <p class=""><span><strong class="subject-title"><a
+                              href="https://weeklybeats.com/wangus?p=1&r=3477&s=&f=&y=2022&t=&d=1&i=&o=title">Title</a></strong><strong
+                            class="info-views"><a
+                              href="https://weeklybeats.com/wangus?p=1&r=3477&s=&f=&y=2022&t=&d=1&i=&o=track_number">Week</a></strong><strong
+                            class="info-replies"><a
+                              href="https://weeklybeats.com/wangus?p=1&r=3477&s=&f=&y=2022&t=&d=1&i=&o=comment_count">Replies</a></strong><strong
+                            class="info-lastpost"><a
+                              href="https://weeklybeats.com/wangus?p=1&r=3477&s=&f=&y=2022&t=&d=0&i=&o=date">Date</a></strong></span>
+                      </p>
+                    </div>
+                    <div id="music_list" class="main-content main-forum forum-views">
+
+
+                      <div id="listitem38166" class="main-item  ">
+                        <div class="item-subject">
+                          <h3 class="hn">
+                            <div class="player-play play-list"
+                              onclick="setPlaylistItem('https://weeklybeats.s3.amazonaws.com/music/2022/wangus_weeklybeats-2022_2_mesadata.m4a');$('#listitem38166').addClass('listened')">
+                              Play</div> <a href="https://weeklybeats.com/wangus/music/mesadata-2">mesadata</a>
+                          </h3>
+                          <p><span class="item-starter">By <cite>wangus</cite></span></p>
+                        </div>
+                        <ul class="item-info">
+                          <li class="info-views"><strong>Week 2</strong></li>
+                          <li class="info-replies"><strong>13</strong> <span class="label">comments</span></li>
+                          <li class="info-lastpost"><span class="label"></span> <strong>January 16, 2022 11:09
+                              pm</strong></li>
+                        </ul>
+                      </div>
+                      <div id="listitem38166after"></div>
+                      <div id="listitem37905" class="main-item  ">
+                        <div class="item-subject">
+                          <h3 class="hn">
+                            <div class="player-play play-list"
+                              onclick="setPlaylistItem('https://weeklybeats.s3.amazonaws.com/music/2022/wangus_weeklybeats-2022_1_wheats-thics-[sic].m4a');$('#listitem37905').addClass('listened')">
+                              Play</div> <a href="https://weeklybeats.com/wangus/music/wheats-thics-[sic]">wheats thics
+                              [sic]</a>
+                          </h3>
+                          <p><span class="item-starter">By <cite>wangus</cite></span></p>
+                        </div>
+                        <ul class="item-info">
+                          <li class="info-views"><strong>Week 1</strong></li>
+                          <li class="info-replies"><strong>15</strong> <span class="label">comments</span></li>
+                          <li class="info-lastpost"><span class="label"></span> <strong>January 9, 2022 11:54
+                              pm</strong></li>
+                        </ul>
+                      </div>
+                      <div id="listitem37905after"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <script>
+
+                setForm();
+              </script>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- forum_qpost -->
+
+      <div id="footer">
+        <div id="brd-navlinks" class="gen-content">
+          <ul>
+            <li id="navfaq"><a href="/faq">FAQ</a></li>
+            <li id="navmusic"><a href="/music" title="View All Music">Music</a></li>
+            <li id="navforum"><a href="/forums/">Forums</a></li>
+            <li id="navregister"><a href="https://weeklybeats.com/forums/register/">Sign-Up</a></li>
+            <li id="navlogin"><a href="https://weeklybeats.com/forums/login/">Login</a></li>
+            <li id="navupload"><a href="/music/upload" title="Submit a track">Upload</a></li>
+          </ul>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="jplayer_data">
+  </div>
+
+</body>
+
+</html>
