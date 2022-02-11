@@ -12,6 +12,13 @@ except ImportError:
 
 
 class TrackListScraper(HTMLParser):
+    """
+    Parses WB page contents for track lists (works for searches, profiles, etc).
+    The structure of HTML tags (and perhaps the values of their attributes)
+    is used to identify bits of content, and converter functions can
+    parse or cast the data to relevant formats.
+    """
+
     def __init__(self):
         super().__init__()
         self.tracks = []
@@ -30,6 +37,7 @@ class TrackListScraper(HTMLParser):
         self.converters = {}
 
     def scrape(self, url, params=None):
+        """Convenience function to scrape tracks from a URL + query params"""
         before = len(self.tracks)
         r = requests.get(url, params)
         self.feed(r.text)
@@ -43,6 +51,10 @@ class TrackListScraper(HTMLParser):
         return tag in ["input"]
 
     def handle_starttag(self, tag, attrs):
+        """
+        HTMLParser parent invokes this on opening tags.
+        We need to track the structure of tags to identify listed tracks.
+        """
         if self.should_ignore(tag):
             return
         attrs = dict(attrs)
@@ -57,6 +69,10 @@ class TrackListScraper(HTMLParser):
             self._itemdepth = self._depth()
 
     def handle_endtag(self, tag):
+        """
+        HTMLParser parent invokes this on closing tags.
+        We need to track the structure of tags to identify listed tracks.
+        """
         if self.should_ignore(tag):
             return
         if self._depth() == 0 or tag != self._opentags[-1][0]:
@@ -69,6 +85,11 @@ class TrackListScraper(HTMLParser):
             self._itemdepth = 0
 
     def handle_data(self, data: str) -> None:
+        """
+        Check current tag structure against target signatures.
+        If one matches, save the content as track info.
+        (with respective conversion/parsing if specified)
+        """
         if self._listitem is None:
             return
         # Check if we match any of the target signatures.
@@ -90,6 +111,10 @@ class TrackListScraper(HTMLParser):
 
 
 class TrackLinkScraper(TrackListScraper):
+    """
+    Pull the track download URL and the artist name too.
+    """
+
     def __init__(self):
         super().__init__()
         self.signatures.update(
@@ -117,6 +142,9 @@ class TrackLinkScraper(TrackListScraper):
 
 
 def scrape_week_tracks(week, year=2022):
+    """
+    Grab all the tracks for a specified week (probably spans multiple pages)
+    """
     scraper = TrackLinkScraper()
     for i in range(1, 10):
         if not scraper.scrape(
@@ -128,6 +156,9 @@ def scrape_week_tracks(week, year=2022):
 
 
 def download_track(track, destination, album=None):
+    """
+    Download a particular track and update metadata with title/artist/album.
+    """
     r = requests.get(track["url"])
     file_path = os.path.join(destination, track["url"].split("/")[-1])
     with open(file_path, "wb+") as g:
@@ -155,7 +186,7 @@ if __name__ == "__main__":
         "--year",
         type=int,
         default=2022,
-        help="Year to download. Default %(default)",
+        help="Year to download. Default %(default)s",
     )
     parser.add_argument("destination", help="Destination directory.")
     args = parser.parse_args()

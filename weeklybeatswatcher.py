@@ -6,6 +6,10 @@ import trackscraper
 
 
 class WeekCommentsScraper(trackscraper.TrackListScraper):
+    """
+    Additionally parse the week number and the current comment count.
+    """
+
     def __init__(self):
         super().__init__()
         self.signatures.update(
@@ -29,17 +33,21 @@ class WeekCommentsScraper(trackscraper.TrackListScraper):
 
 
 def fetch_tracks(username="wangus"):
+    """Fetch a user's track listing"""
+    # TODO: does this paginate eventually?
     w = WeekCommentsScraper()
     w.scrape("https://weeklybeats.com/" + username)
     return w.tracks
 
 
 def save_record(tracks, path):
+    """Save a comment count record to a file."""
     with open(path, "w+") as g:
         json.dump(tracks, g)
 
 
 def load_record(path):
+    """Load a comment count record from a file (or empty if file doesn't exist yet)"""
     if not os.path.isfile(path):
         return []
     with open(path) as f:
@@ -47,6 +55,10 @@ def load_record(path):
 
 
 def check_new_comments(tracks, record):
+    """
+    Compare comment counts to an existing record and return which have new comments.
+    Ignores previously unrecorded tracks
+    """
     new_comments = {}
 
     def week_indexed(a):
@@ -63,6 +75,11 @@ def check_new_comments(tracks, record):
 
 
 def fetch_new_comments(record_path, username="wangus"):
+    """
+    Fetch new comment count for the specified username,
+    assess which tracks have new comments,
+    and update the record.
+    """
     tracks = fetch_tracks()
     record = load_record(record_path)
     new_comments = check_new_comments(tracks, record)
