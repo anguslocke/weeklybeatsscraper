@@ -116,7 +116,7 @@ class TrackLinkScraper(TrackListScraper):
         )
 
 
-def scrapeWeekTracks(week, year=2022):
+def scrape_week_tracks(week, year=2022):
     scraper = TrackLinkScraper()
     for i in range(1, 10):
         if not scraper.scrape(
@@ -127,7 +127,7 @@ def scrapeWeekTracks(week, year=2022):
     return scraper.tracks
 
 
-def downloadTrack(track, destination, album=None):
+def download_track(track, destination, album=None):
     r = requests.get(track["url"])
     file_path = os.path.join(destination, track["url"].split("/")[-1])
     with open(file_path, "wb+") as g:
@@ -140,9 +140,9 @@ def downloadTrack(track, destination, album=None):
     f.save()
 
 
-def downloadTracks(tracks, destination, album=None):
+def download_tracks(tracks, destination, album=None):
     for track in tqdm(tracks):
-        downloadTrack(track, destination, album)
+        download_track(track, destination, album)
 
 
 if __name__ == "__main__":
@@ -160,5 +160,7 @@ if __name__ == "__main__":
     parser.add_argument("destination", help="Destination directory.")
     args = parser.parse_args()
 
-    tracks = scrapeWeekTracks(args.week, args.year)
-    downloadTracks(tracks, args.destination, "WB {} wk {}".format(args.year, args.week))
+    tracks = scrape_week_tracks(args.week, args.year)
+    download_tracks(
+        tracks, args.destination, "WB {} wk {}".format(args.year, args.week)
+    )
