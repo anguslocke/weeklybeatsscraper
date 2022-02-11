@@ -1,6 +1,13 @@
+import os
 from html.parser import HTMLParser
 
+import music_tag
 import requests
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = lambda sequence: (i for i in sequence)
 
 
 class TrackListScraper(HTMLParser):
@@ -22,8 +29,10 @@ class TrackListScraper(HTMLParser):
         self.converters = {}
 
     def scrape(self, url, params=None):
+        before = len(self.tracks)
         r = requests.get(url, params)
         self.feed(r.text)
+        return len(self.tracks) > before
 
     def _depth(self):
         return len(self._opentags)
@@ -77,3 +86,55 @@ class TrackListScraper(HTMLParser):
             else:
                 # No mismatches!
                 self._listitem[thing] = self.converters.get(thing, str)(data)
+
+
+class TrackLinkScraper(TrackListScraper):
+    def __init__(self):
+        super().__init__()
+        self.signatures.update(
+            {
+                "url": (("div", {"class": "player-play play-list"}),),
+                "artist": (
+                    ("p", {}),
+                    ("span", {"class": "item-starter"}),
+                    ("cite", {}),
+                ),
+            }
+        )
+        # To be called when we match the signature above
+        def extract_track_url(_):
+            onclick = self._opentags[-1][1]["onclick"]
+            # looks like
+            # "setPlaylistItem('https://weeklybeats.s3.amazonaws.com/music/2022/wangus_weeklybeats-2022_1_wheats-thics-[sic].m4a');..."
+            return onclick.split("'")[1]
+
+        self.converters.update(
+            {
+                "url": extract_track_url,
+            }
+        )
+
+
+def scrapeWeekTracks(week, year=2022):
+    scraper = TrackLinkScraper()
+    for i in range(1, 10):
+        if not scraper.scrape(
+            "https://weeklybeats.com/music",
+            params={"p": i, "o": "title", "s": "tag:week {} {}".format(week, year)},
+        ):
+            break
+    return scraper.tracks
+
+
+def downloadTracks(tracks, destination, album=None):
+    for track in tqdm(tracks):
+        r = requests.get(track["url"])
+        file_path = os.path.join(destination, track["url"].split("/")[-1])
+        with open(file_path, "wb+") as g:
+            g.write(r.content)
+        f = music_tag.load_file(file_path)
+        f["title"] = track["title"]
+        f["artist"] = track["artist"]
+        if album is not None:
+            f["album"] = album
+        f.save()

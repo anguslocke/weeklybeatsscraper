@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 requests = "*"
+music-tag = "*"
+tqdm = "*"
 
 [dev-packages]
 
