@@ -1,3 +1,4 @@
+import argparse
 import os
 from html.parser import HTMLParser
 
@@ -126,15 +127,38 @@ def scrapeWeekTracks(week, year=2022):
     return scraper.tracks
 
 
+def downloadTrack(track, destination, album=None):
+    r = requests.get(track["url"])
+    file_path = os.path.join(destination, track["url"].split("/")[-1])
+    with open(file_path, "wb+") as g:
+        g.write(r.content)
+    f = music_tag.load_file(file_path)
+    f["title"] = track["title"]
+    f["artist"] = track["artist"]
+    if album is not None:
+        f["album"] = album
+    f.save()
+
+
 def downloadTracks(tracks, destination, album=None):
     for track in tqdm(tracks):
-        r = requests.get(track["url"])
-        file_path = os.path.join(destination, track["url"].split("/")[-1])
-        with open(file_path, "wb+") as g:
-            g.write(r.content)
-        f = music_tag.load_file(file_path)
-        f["title"] = track["title"]
-        f["artist"] = track["artist"]
-        if album is not None:
-            f["album"] = album
-        f.save()
+        downloadTrack(track, destination, album)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Download WeeklyBeats week tracks.")
+    parser.add_argument(
+        "-w", "--week", type=int, required=True, help="Week number to download."
+    )
+    parser.add_argument(
+        "-y",
+        "--year",
+        type=int,
+        default=2022,
+        help="Year to download. Default %(default)",
+    )
+    parser.add_argument("destination", help="Destination directory.")
+    args = parser.parse_args()
+
+    tracks = scrapeWeekTracks(args.week, args.year)
+    downloadTracks(tracks, args.destination, "WB {} wk {}".format(args.year, args.week))
