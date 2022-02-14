@@ -155,25 +155,32 @@ def scrape_week_tracks(week, year=2022):
     return scraper.tracks
 
 
-def download_track(track, destination, album=None):
+def download_track(track, destination, album=None, force_download=False):
     """
     Download a particular track and update metadata with title/artist/album.
     """
-    r = requests.get(track["url"])
     file_path = os.path.join(destination, track["url"].split("/")[-1])
-    with open(file_path, "wb+") as g:
-        g.write(r.content)
+    if not os.path.exists(file_path) or force_download:
+        r = requests.get(track["url"])
+        with open(file_path, "wb+") as g:
+            g.write(r.content)
     f = music_tag.load_file(file_path)
     f["title"] = track["title"]
     f["artist"] = track["artist"]
+    f["compilation"] = True
+    f["albumartist"] = "Various Artists"
+    for tag in ("tracknumber", "totaltracks"):
+        # I'm having trouble getting music-tag to unset track numbers on some files. This is OK?
+        f[tag] = 0
+    f.remove_tag("album")
     if album is not None:
         f["album"] = album
     f.save()
 
 
-def download_tracks(tracks, destination, album=None):
+def download_tracks(tracks, destination, album=None, force_download=False):
     for track in tqdm(tracks):
-        download_track(track, destination, album)
+        download_track(track, destination, album, force_download)
 
 
 if __name__ == "__main__":
@@ -188,10 +195,19 @@ if __name__ == "__main__":
         default=2022,
         help="Year to download. Default %(default)s",
     )
+    parser.add_argument(
+        "-f",
+        "--force-download",
+        action="store_true",
+        help="Download all tracks (normally we skip already-downloaded)",
+    )
     parser.add_argument("destination", help="Destination directory.")
     args = parser.parse_args()
 
     tracks = scrape_week_tracks(args.week, args.year)
     download_tracks(
-        tracks, args.destination, "WB {} wk {}".format(args.year, args.week)
+        tracks,
+        args.destination,
+        "WB {} wk {}".format(args.year, args.week),
+        args.force_download,
     )
