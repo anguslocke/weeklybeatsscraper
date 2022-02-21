@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+import unicodedata
 
 import music_tag
 import requests
@@ -146,12 +147,21 @@ def scrape_week_tracks(week, year=2022):
     return scraper.tracks
 
 
+def get_track_description(page_url):
+    r = requests.get(page_url)
+    b = BeautifulSoup(r.text, features="html.parser")
+    description = b.head.find_all("meta", property="og:description")[0].attrs["content"]
+    # Newline and unicode compatibility normalization
+    description = "\n".join(unicodedata.normalize("NFKD", description).splitlines())
+    return description
+
+
 def scrape_track_descriptions(tracks):
     """
     Grab all the track descriptions.
     """
     for track in tqdm(tracks):
-        pass
+        track["description"] = get_track_description(track["page"])
 
 
 def download_track(track, destination, album=None, force_download=False):
@@ -168,6 +178,9 @@ def download_track(track, destination, album=None, force_download=False):
     f["artist"] = track["artist"]
     f["compilation"] = True
     f["albumartist"] = "Various Artists"
+    # Use the lyrics field to include the original description.
+    if "lyrics" not in f:
+        f["lyrics"] = get_track_description(track["page"])
     for tag in ("tracknumber", "totaltracks"):
         # I'm having trouble getting music-tag to unset track numbers on some files. This is OK?
         f[tag] = 0
@@ -203,7 +216,9 @@ if __name__ == "__main__":
     parser.add_argument("destination", help="Destination directory.")
     args = parser.parse_args()
 
+    print("Scraping tracks...")
     tracks = scrape_week_tracks(args.week, args.year)
+    print("Downloading new tracks (and descriptions) and updating metadata...")
     download_tracks(
         tracks,
         args.destination,
