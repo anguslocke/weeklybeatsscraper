@@ -15,19 +15,19 @@ class WeekCommentsScraper(trackscraper.TrackListScraper):
         self.signatures.update(
             {
                 "week": (
-                    ("li", {"class": "info-views"}),
+                    ("li", {"class": ["info-views"]}),
                     ("strong", {}),
                 ),
                 "comments": (
-                    ("li", {"class": "info-replies"}),
+                    ("li", {"class": ["info-replies"]}),
                     ("strong", {}),
                 ),
             }
         )
         self.converters.update(
             {
-                "week": lambda s: int(s.split()[1]),
-                "comments": int,
+                "week": lambda t: int(t.string.split()[1]),
+                "comments": lambda t: int(t.string),
             }
         )
 

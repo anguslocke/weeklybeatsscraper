@@ -1,9 +1,10 @@
 import argparse
 import os
-from html.parser import HTMLParser
+import re
 
 import music_tag
 import requests
+from bs4 import BeautifulSoup
 
 try:
     from tqdm import tqdm
@@ -11,7 +12,7 @@ except ImportError:
     tqdm = lambda sequence: (i for i in sequence)
 
 
-class TrackListScraper(HTMLParser):
+class TrackListScraper:
     """
     Parses WB page contents for track lists (works for searches, profiles, etc).
     The structure of HTML tags (and perhaps the values of their attributes)
@@ -20,16 +21,12 @@ class TrackListScraper(HTMLParser):
     """
 
     def __init__(self):
-        super().__init__()
         self.tracks = []
-        self._opentags = []
-        self._listitem = None
-        self._itemdepth = 0
         # Key bits of data are identified by certain signatures of tags,
         #   some of which with certain attributes.
         self.signatures = {
             "title": (
-                ("div", {"class": "item-subject"}),
+                ("div", {"class": ["item-subject"]}),
                 ("h3", {}),
                 ("a", {}),
             ),
@@ -43,71 +40,57 @@ class TrackListScraper(HTMLParser):
         self.feed(r.text)
         return len(self.tracks) > before
 
-    def _depth(self):
-        return len(self._opentags)
+    def _signature_key_match(self, tag, key, verbose=False):
+        """
+        Checks a BeautifulSoup tag against a signature item (name, plus attrs).
+        """
+        if verbose:
+            print("checking for {}".format(key))
+        if tag.name != key[0]:
+            if verbose:
+                print("  mismatch name {} != {}".format(tag.name, key[0]))
+            return False
+        for attr in key[1]:
+            if not tag.has_attr(attr):
+                if verbose:
+                    print("  absent " + attr)
+                return False
+            value = key[1][attr]
+            if value and value != tag[attr]:
+                if verbose:
+                    print("  mismatch {} != {}".format(tag[attr], value))
+                return False
+        return True
 
-    def should_ignore(self, tag):
-        # Input tags seem to not be closed sometimes.
-        return tag in ["input"]
+    def _signature_match_function(self, sig):
+        """
+        Returns a function that checks a tag against the specified signature.
+        (name/attrs of tag itself, and looking back to any relevant parents)
+        """
 
-    def handle_starttag(self, tag, attrs):
-        """
-        HTMLParser parent invokes this on opening tags.
-        We need to track the structure of tags to identify listed tracks.
-        """
-        if self.should_ignore(tag):
-            return
-        attrs = dict(attrs)
-        self._opentags.append((tag, attrs))
-        if tag == "div" and attrs.get("class", "").startswith("main-item"):
-            # Track list item start
-            if self._listitem is not None:
-                raise ValueError(
-                    "Unclosed track list item at {}?".format(self.getpos())
-                )
-            self._listitem = {"id": attrs["id"]}
-            self._itemdepth = self._depth()
+        def signature_match(tag):
+            if not self._signature_key_match(tag, sig[-1]):
+                return False
+            for parent, key in zip(tag.parents, sig[-2::-1]):
+                if not self._signature_key_match(parent, key):
+                    return False
+            return True
 
-    def handle_endtag(self, tag):
-        """
-        HTMLParser parent invokes this on closing tags.
-        We need to track the structure of tags to identify listed tracks.
-        """
-        if self.should_ignore(tag):
-            return
-        if self._depth() == 0 or tag != self._opentags[-1][0]:
-            raise ValueError("Mismatch tag '{}' at {}".format(tag, self.getpos()))
-        self._opentags.pop()
-        if self._depth() < self._itemdepth:
+        return signature_match
+
+    def feed(self, contents):
+        b = BeautifulSoup(contents, features="html.parser")
+        track_tags = b.find_all("div", class_=re.compile("^main-item"))
+        for track_tag in track_tags:
+            track = {}
+            # Find signatured things in track tag contents
+            for thing, sig in self.signatures.items():
+                result = track_tag.find_all(self._signature_match_function(sig))
+                if len(result) != 1:
+                    print("Bad '{}' signature: found {}?".format(thing, len(result)))
+                track[thing] = self.converters.get(thing, lambda t: t.string)(result[0])
             # TODO: validate track info
-            self.tracks.append(self._listitem)
-            self._listitem = None
-            self._itemdepth = 0
-
-    def handle_data(self, data: str) -> None:
-        """
-        Check current tag structure against target signatures.
-        If one matches, save the content as track info.
-        (with respective conversion/parsing if specified)
-        """
-        if self._listitem is None:
-            return
-        # Check if we match any of the target signatures.
-        for thing, conditions in self.signatures.items():
-            for tag, test in zip(self._opentags[-len(conditions) :], conditions):
-                if test[0] != tag[0]:
-                    break
-                for attr in test[1]:
-                    if attr not in tag[1] or tag[1][attr] != test[1][attr]:
-                        break
-                else:
-                    # Everything checked out.
-                    continue
-                # If we got here, an attribute mismatched.
-                break
-            else:
-                # No mismatches!
-                self._listitem[thing] = self.converters.get(thing, str)(data)
+            self.tracks.append(track)
 
 
 class TrackLinkScraper(TrackListScraper):
@@ -119,23 +102,31 @@ class TrackLinkScraper(TrackListScraper):
         super().__init__()
         self.signatures.update(
             {
-                "url": (("div", {"class": "player-play play-list"}),),
+                "url": (("div", {"class": ["player-play", "play-list"]}),),
+                "page": (
+                    ("div", {"class": ["item-subject"]}),
+                    ("h3", {}),
+                    ("a", {}),
+                ),
                 "artist": (
                     ("p", {}),
-                    ("span", {"class": "item-starter"}),
+                    ("span", {"class": ["item-starter"]}),
                     ("cite", {}),
                 ),
             }
         )
         # To be called when we match the signature above
-        def extract_track_url(_):
-            onclick = self._opentags[-1][1]["onclick"]
-            # looks like
+        def extract_track_url(tag):
+            # "onclick" attr looks like
             # "setPlaylistItem('https://weeklybeats.s3.amazonaws.com/music/2022/wangus_weeklybeats-2022_1_wheats-thics-[sic].m4a');..."
-            return onclick.split("'")[1]
+            return tag.attrs["onclick"].split("'")[1]
+
+        def extract_page_url(tag):
+            return tag.attrs["href"]
 
         self.converters.update(
             {
+                "page": extract_page_url,
                 "url": extract_track_url,
             }
         )
@@ -153,6 +144,14 @@ def scrape_week_tracks(week, year=2022):
         ):
             break
     return scraper.tracks
+
+
+def scrape_track_descriptions(tracks):
+    """
+    Grab all the track descriptions.
+    """
+    for track in tqdm(tracks):
+        pass
 
 
 def download_track(track, destination, album=None, force_download=False):

@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 music-tag = "*"
 tqdm = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 
