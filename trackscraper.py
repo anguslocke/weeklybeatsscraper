@@ -184,6 +184,8 @@ def download_track(track, destination, album=None, force_download=False):
     for tag in ("tracknumber", "totaltracks"):
         # I'm having trouble getting music-tag to unset track numbers on some files. This is OK?
         f[tag] = 0
+    # Personal preference; remove artwork
+    f["artwork"] = []
     f.remove_tag("album")
     if album is not None:
         f["album"] = album
