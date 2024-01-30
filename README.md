@@ -6,7 +6,7 @@ https://weeklybeats.com
 I wanted a way to batch download tracks, so I could listen offline.
 
 You give the week number (and the year, though I haven't tried anything
-other than default 2022), and it downloads all of that week's tracks,
+other than default 2024), and it downloads all of that week's tracks,
 and amends the metadata with title, artist, and "album title" of the
 week number.
 
@@ -15,12 +15,13 @@ week number.
 You gotta get Python 3 going yourself.
 And you'll need modules:
 * requests (fetch the info/tracks)
-* music-tag (amend track metadata)
+* mutagen (amend track metadata)
 * tqdm (optional, just a lil progress bar)
 
 and their dependencies.
 
 The Pipfile is there if you use Pipenv like I do.
+(it's just a pipenv i use generally, so a bunch of unnecessary stuff)
 
 # usage
 

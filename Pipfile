@@ -3,13 +3,25 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[pipenv]
+sort_pipfile = true
+
 [packages]
+bs4 = "*"
+ipython = "*"
+matplotlib = "*"
+mutagen = "*"
+numpy = "*"
+opencv-python = "*"
+pillow = "*"
 requests = "*"
-music-tag = "*"
+scipy = "*"
+simple-term-menu = "*"
+tabulate = "*"
 tqdm = "*"
-beautifulsoup4 = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.12"
+python_full_version = "3.12.1"

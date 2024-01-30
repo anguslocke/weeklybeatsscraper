@@ -1,11 +1,16 @@
 import argparse
+import multiprocessing as mp
 import os
 import re
 import unicodedata
 
-import music_tag
+import mutagen
 import requests
 from bs4 import BeautifulSoup
+from mutagen.easyid3 import EasyID3
+from mutagen.easymp4 import EasyMP4
+from mutagen.id3 import ID3, TCMP, USLT
+from mutagen.mp3 import EasyMP3
 
 try:
     from tqdm import tqdm
@@ -89,7 +94,9 @@ class TrackListScraper:
                 result = track_tag.find_all(self._signature_match_function(sig))
                 if len(result) != 1:
                     print("Bad '{}' signature: found {}?".format(thing, len(result)))
-                track[thing] = self.converters.get(thing, lambda t: t.string)(result[0])
+                track[thing] = str(
+                    self.converters.get(thing, lambda t: t.string)(result[0])
+                )
             # TODO: validate track info
             self.tracks.append(track)
 
@@ -116,6 +123,7 @@ class TrackLinkScraper(TrackListScraper):
                 ),
             }
         )
+
         # To be called when we match the signature above
         def extract_track_url(tag):
             # "onclick" attr looks like
@@ -133,7 +141,7 @@ class TrackLinkScraper(TrackListScraper):
         )
 
 
-def scrape_week_tracks(week, year=2022):
+def scrape_week_tracks(week, year=2024):
     """
     Grab all the tracks for a specified week (probably spans multiple pages)
     """
@@ -147,21 +155,33 @@ def scrape_week_tracks(week, year=2022):
     return scraper.tracks
 
 
-def get_track_description(page_url):
-    r = requests.get(page_url)
+def get_track_description(track):
+    r = requests.get(track["page"])
     b = BeautifulSoup(r.text, features="html.parser")
-    description = b.head.find_all("meta", property="og:description")[0].attrs["content"]
+    try:
+        description = b.head.find_all("meta", property="og:description")[0].attrs[
+            "content"
+        ]
+    except IndexError:
+        with open(f'/tmp/dump-{track["url"].split("/")[-1]}', "w+") as g:
+            g.write(r.text)
+        return
     # Newline and unicode compatibility normalization
     description = "\n".join(unicodedata.normalize("NFKD", description).splitlines())
-    return description
+    track["description"] = description
 
 
-def scrape_track_descriptions(tracks):
+def scrape_track_descriptions(tracks, parallel=False):
     """
     Grab all the track descriptions.
     """
-    for track in tqdm(tracks):
-        track["description"] = get_track_description(track["page"])
+    if parallel:
+        with mp.Pool(50) as p, tqdm(total=len(tracks)) as progress:
+            for _ in p.imap_unordered(get_track_description, tracks, 2):
+                progress.update()
+    else:
+        for track in tqdm(tracks):
+            get_track_description(track)
 
 
 def download_track(track, destination, album=None, force_download=False):
@@ -173,40 +193,62 @@ def download_track(track, destination, album=None, force_download=False):
         r = requests.get(track["url"])
         with open(file_path, "wb+") as g:
             g.write(r.content)
-    f = music_tag.load_file(file_path)
+
+    # tbh idk why these are necessary
+    EasyID3.RegisterTextKey("lyrics", "USLT")
+    EasyID3.RegisterTextKey("compilation", "TCMP")
+    EasyMP4.RegisterTextKey("lyrics", "\xa9lyr")
+    EasyMP4.RegisterTextKey("compilation", "cpil")
+
+    try:
+        f = mutagen.File(file_path, easy=True)
+        # Only used for some checks I don't know how to make on Easy.
+        hard = mutagen.File(file_path)
+    except Exception:
+        print(f"Error loading metadata '{file_path}'")
+        return
+
+    # breakpoint()
+    # TODO: less hacky
+    if isinstance(f, EasyMP3):
+        reload_description = "USLT::XXX" not in hard
+    elif isinstance(f, EasyMP4):
+        reload_description = "\xa9lyr" not in hard
+    else:
+        reload_description = "lyrics" not in f
+    if reload_description:
+        get_track_description(track)
+        f["lyrics"] = track["description"]
+
     f["title"] = track["title"]
     f["artist"] = track["artist"]
-    f["compilation"] = True
     f["albumartist"] = "Various Artists"
-    # Use the lyrics field to include the original description.
-    if "lyrics" not in f:
-        f["lyrics"] = get_track_description(track["page"])
-    for tag in ("tracknumber", "totaltracks"):
-        # I'm having trouble getting music-tag to unset track numbers on some files. This is OK?
-        f[tag] = 0
-    # Personal preference; remove artwork
-    f["artwork"] = []
-    f.remove_tag("album")
+    f["compilation"] = "1"
+
+    # personal preference: i don't want these
+    for tag in ("tracknumber", "totaltracks", "artwork", "album"):
+        f.pop(tag, None)
+
     if album is not None:
         f["album"] = album
     f.save()
 
 
 def download_tracks(tracks, destination, album=None, force_download=False):
-    for track in tqdm(tracks):
+    for track in tqdm(tracks, maxinterval=1):
         download_track(track, destination, album, force_download)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download WeeklyBeats week tracks.")
     parser.add_argument(
-        "-w", "--week", type=int, required=True, help="Week number to download."
+        "-w", "--week", type=int, default=None, help="Week number to download."
     )
     parser.add_argument(
         "-y",
         "--year",
         type=int,
-        default=2022,
+        default=2024,
         help="Year to download. Default %(default)s",
     )
     parser.add_argument(
@@ -218,7 +260,14 @@ if __name__ == "__main__":
     parser.add_argument("destination", help="Destination directory.")
     args = parser.parse_args()
 
-    print("Scraping tracks...")
+    if args.week is None:
+        try:
+            args.week = int(args.destination.split("-")[-1])
+            assert args.week >= 1 and args.week <= 52
+        except:
+            raise ValueError("ya gotta specify a week")
+
+    print(f"Scraping tracks for week {args.week}...")
     tracks = scrape_week_tracks(args.week, args.year)
     print("Downloading new tracks (and descriptions) and updating metadata...")
     download_tracks(
