@@ -149,7 +149,14 @@ def scrape_week_tracks(week, year=2024):
     for i in range(1, 10):
         if not scraper.scrape(
             "https://weeklybeats.com/music",
-            params={"p": i, "o": "title", "s": "tag:week {} {}".format(week, year)},
+            params={
+                "p": i,
+                "o": "title",
+                "y": year,
+                "s": "tag:week {} {}".format(week, year),
+                # filter = none?
+                "f": 8,
+            },
         ):
             break
     return scraper.tracks
@@ -194,6 +201,10 @@ def download_track(track, destination, album=None, force_download=False):
         with open(file_path, "wb+") as g:
             g.write(r.content)
 
+    # TODO: split out downloading and metadataing
+    # TODO: on errors, try changing extension
+    #   or better, check filetype?
+
     # tbh idk why these are necessary
     EasyID3.RegisterTextKey("lyrics", "USLT")
     EasyID3.RegisterTextKey("compilation", "TCMP")
@@ -236,7 +247,11 @@ def download_track(track, destination, album=None, force_download=False):
 
 def download_tracks(tracks, destination, album=None, force_download=False):
     for track in tqdm(tracks, maxinterval=1):
-        download_track(track, destination, album, force_download)
+        try:
+            download_track(track, destination, album, force_download)
+        except Exception as e:
+            print(f"Error downloading '{track}'")
+            print(e)
 
 
 if __name__ == "__main__":
